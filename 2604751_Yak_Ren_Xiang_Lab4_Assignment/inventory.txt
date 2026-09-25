@@ -1,0 +1,7 @@
+Total Units Processed: 22
+Current Orders:
+Product ID | Item Name | Quantity
+
+1000, Mouse, 2
+1001, Monitor, 5
+1002, USB sticks, 15
