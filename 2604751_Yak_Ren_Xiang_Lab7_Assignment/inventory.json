@@ -1,0 +1,40 @@
+{
+    "products": [
+        {
+            "id": "P001",
+            "name": "Laptop",
+            "price": 1200.0,
+            "stock": 15
+        },
+        {
+            "id": "P002",
+            "name": "Mouse",
+            "price": 25.5,
+            "stock": 50
+        },
+        {
+            "id": "P003",
+            "name": "Keyboard",
+            "price": 45.0,
+            "stock": 25
+        },
+        {
+            "id": "P004",
+            "name": "Monitor",
+            "price": 299.99,
+            "stock": 10
+        },
+        {
+            "id": "P005",
+            "name": "Mousepad",
+            "price": 10.0,
+            "stock": 15
+        }
+    ],
+    "total_units": 115,
+    "failed_entries": 2,
+    "errors": [
+        "Product ID 'laptop' not found.",
+        "No product found matching 'dkendjf'."
+    ]
+}
