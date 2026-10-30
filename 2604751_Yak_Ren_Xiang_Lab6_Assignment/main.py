@@ -1,11 +1,11 @@
 import os
 import json
 
-FILENAME = "inventory.json"
-STOCK_LIMIT = 500
-TAX_RATE = 0.10
+from product import Product
+from inventory import Inventory
 
-inventory = []
+FILENAME = "inventory.json"
+
 error_log = []
 failed_entries = 0
 
@@ -25,18 +25,6 @@ def log_error(message):
     error_log.append(message)
     print("Error:", message)
 
-def get_unit_count():
-    return sum(p["stock"] for p in inventory)
-
-def calculate_tax(price, stock):
-    return "${:.2f}".format(price * TAX_RATE * stock)
-
-def find_product(product_id):
-    for p in inventory:
-        if p["id"].lower() == product_id.lower():
-            return p
-    return None
-
 def read_text(prompt):
     return input(prompt).strip()
 
@@ -51,64 +39,48 @@ def read_number(prompt, cast):
     except ValueError:
         log_error(f"Invalid input '{raw}' for {prompt.strip(': ')}.")
         return None
- 
-def format_product(p):
-    return f"ID: {p['id']} | Name: {p['name']} | Price: ${p['price']:.2f} | Stock: {p['stock']}"
         
-def load_inventory():
-    global inventory, error_log, failed_entries
-    if os.path.exists(FILENAME):
-        print(f"{FILENAME} found.")
-        try:
-            with open(FILENAME, "r") as f:
-                data = json.load(f)
-            inventory = data.get("products", [])
-            error_log = data.get("errors", [])
-            failed_entries = data.get("failed_entries", 0)
-            print("Inventory loaded successfully.")
-        except (json.JSONDecodeError, AttributeError):
-            print(f"{FILENAME} is unreadable. Starting with an empty inventory.")
-            inventory = []
-    else:
+def load_inventory(inventory):
+    global error_log, failed_entries
+    if not os.path.exists(FILENAME):
         print(f"{FILENAME} not found. Creating a new one.")
-        inventory = []
-        error_log = []
-        failed_entries = 0
-        with open(FILENAME, "w") as f:
-            json.dump({"products": [], "total_units": 0,
-                       "failed_entries": 0, "errors": []}, f, indent=4)
+        save_inventory(inventory)
+        return
 
-    
-def save_inventory():
+    print(f"{FILENAME} found.")
+    try:
+        with open(FILENAME, "r") as f:
+            data = json.load(f)
+        error_log = data.get("errors", [])
+        failed_entries = data.get("failed_entries", 0)
+        for item in data.get("products", []):
+            try:
+                inventory.add_product(Product.from_dict(item))
+            except (KeyError, TypeError, ValueError) as e:
+                print(f"Skipped invalid product in file: {e}")      
+        print("Inventory loaded successfully.")
+    except (json.JSONDecodeError, AttributeError):
+        print(f"{FILENAME} is unreadable. Starting with an empty inventory.")
+
+def save_inventory(inventory):
     data = {
-        "products": inventory,
-        "total_units": get_unit_count(),
+        "products": inventory.to_list(),
+        "total_units": inventory.get_unit_count(),
         "failed_entries": failed_entries,
         "errors": error_log,
     }
     with open(FILENAME, "w") as f:
         json.dump(data, f, indent=4)
     print("Inventory saved successfully!\n")
-
-
-def display_all():
-    print("Current Inventory")
-    print("-" * 48)
-    if not inventory:
-        print("No products in inventory.")
-    for p in inventory:
-        print(format_product(p))
-    print("-" * 48, "\n")
-
  
-def add_product():
+def add_product(inventory):
     print("Add New Product")
     pid = read_text("Product ID: ")
-    if not pid or find_product(pid):
+    if not pid or inventory.find_product(pid):
         log_error(f"Product ID '{pid}' is empty or already exists.")
         return
     name = read_text("Product Name: ")
-    if not name or name.isdigit():
+    if not Product.is_valid_name(name):
         log_error(f"Invalid product name '{name}'.")
         return
     price = read_number("Price: ", float)
@@ -117,43 +89,42 @@ def add_product():
     stock = read_number("Stock Quantity: ", int)
     if stock is None:
         return
-    if get_unit_count() + stock >= STOCK_LIMIT:
-        log_error(f"Overstock Alert: total stock must stay under {STOCK_LIMIT} units.")
+    try:
+        product = Product(pid, name, price, stock)
+        inventory.add_product(product)
+    except ValueError as e:
+        log_error(str(e))
         return
-    inventory.append({"id": pid, "name": name, "price": price, "stock": stock})
     print("Product added successfully!")
-    print("Tax (10%):", calculate_tax(price, stock),"\n")
+    print(f"Tax (10%): ${product.calculate_tax():.2f}\n")
     
  
-def update_stock():
+def update_stock(inventory):
     print("Update Stock")
     pid = read_text("Product ID: ")
-    product = find_product(pid)
+    product = inventory.find_product(pid)
     if not product:
         log_error(f"Product ID '{pid}' not found.")
         return
     stock = read_number("New Stock Quantity: ", int)
     if stock is None:
         return
-    if get_unit_count() - product["stock"] + stock >= STOCK_LIMIT:
-        log_error(f"Overstock Alert: total stock must stay under {STOCK_LIMIT} units.")
+    try:
+        inventory.update_stock(pid, stock)
+    except ValueError as e:
+        log_error(str(e))
         return
-    product["stock"] = stock
-
     print("Stock updated successfully!\n")
 
  
-def search_product():
+def search_product(inventory):
     print("Search Product")
     term = read_text("Enter Product ID or Name: ").lower()
-    matches = [p for p in inventory if term in p["id"].lower() or term in p["name"].lower()]
-    if not term or not matches:
+    matches = inventory.search_product(term)
+    if not matches:
         log_error(f"No product found matching '{term}'.")
         return
-    print("-" * 48)
-    for p in matches:
-        print(format_product(p), "| Tax:", calculate_tax(p["price"], p["stock"]))
-    print("-" * 48, "\n")
+    inventory.display_products(matches, show_tax=True)
  
  
 def show_menu():
@@ -166,11 +137,17 @@ def show_menu():
 print("=" * 40)
 print("INVENTORY MANAGEMENT SYSTEM")
 print("=" * 40)
-load_inventory()
+inventory = Inventory()
+load_inventory(inventory)
 show_menu()
 
-actions = {"1": display_all, "2": add_product, "3": update_stock,
-            "4": search_product, "5": save_inventory}
+actions = {
+            "1": inventory.display_all, 
+            "2": lambda: add_product(inventory), 
+            "3": lambda: update_stock(inventory),
+            "4": lambda: search_product(inventory), 
+            "5": lambda: save_inventory(inventory)
+            }
 
 while True:
     choice = read_text("\nEnter option: ")
@@ -182,12 +159,13 @@ while True:
         log_error(f"Invalid menu option '{choice}'.\n")
 
 print("\nFinal Summary:")
-print("Total Units in Stock:", get_unit_count())
+print("Total Units in Stock:", inventory.get_unit_count())
 print("Number of Failed/Rejected Entries:", failed_entries)
 
-if get_unit_count() >= STOCK_LIMIT:
+if inventory.is_overstocked():
     print("Overstock Alert: Inventory limit reached.")
-save_inventory()
+    
+save_inventory(inventory)
 
 print("\nSaving inventory before exit...")
 print("Inventory saved successfully.")

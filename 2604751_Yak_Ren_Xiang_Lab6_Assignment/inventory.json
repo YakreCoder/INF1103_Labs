@@ -23,9 +23,15 @@
             "name": "Monitor",
             "price": 299.99,
             "stock": 10
+        },
+        {
+            "id": "P005",
+            "name": "Mousepad",
+            "price": 10.0,
+            "stock": 15
         }
     ],
-    "total_units": 100,
+    "total_units": 115,
     "failed_entries": 2,
     "errors": [
         "Product ID 'laptop' not found.",
