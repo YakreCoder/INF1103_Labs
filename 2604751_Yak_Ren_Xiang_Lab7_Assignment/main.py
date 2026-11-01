@@ -3,6 +3,9 @@ import json
 
 from product import Product
 from inventory import Inventory
+from physical_product import PhysicalProduct
+from digital_product import DigitalProduct
+from product_factory import create_product
 
 FILENAME = "inventory.json"
 
@@ -55,7 +58,7 @@ def load_inventory(inventory):
         failed_entries = data.get("failed_entries", 0)
         for item in data.get("products", []):
             try:
-                inventory.add_product(Product.from_dict(item))
+                inventory.add_product(create_product(item))
             except (KeyError, TypeError, ValueError) as e:
                 print(f"Skipped invalid product in file: {e}")      
         print("Inventory loaded successfully.")
@@ -76,27 +79,49 @@ def save_inventory(inventory):
 def add_product(inventory):
     print("Add New Product")
     pid = read_text("Product ID: ")
+
     if not pid or inventory.find_product(pid):
         log_error(f"Product ID '{pid}' is empty or already exists.")
         return
+    
     name = read_text("Product Name: ")
     if not Product.is_valid_name(name):
         log_error(f"Invalid product name '{name}'.")
         return
+    
     price = read_number("Price: ", float)
     if price is None:
         return
+    
     stock = read_number("Stock Quantity: ", int)
     if stock is None:
         return
+    
+    product_type = read_text("Product Type (1 = Physical, 2 = Digital): ")
     try:
-        product = Product(pid, name, price, stock)
+        if product_type == "1":
+            weight = read_number("Weight (kg): ", float)
+            if weight is None:
+                return
+            product = PhysicalProduct(pid, name, price, stock, weight)
+        elif product_type == "2":
+            size = read_number("Download Size (MB): ", float)
+            if size is None:
+                return
+            product = DigitalProduct(pid, name, price, stock, size)
+        else:
+            log_error(f"Invalid product type '{product_type}'.")
+            return
         inventory.add_product(product)
     except ValueError as e:
         log_error(str(e))
         return
+    
     print("Product added successfully!")
     print(f"Tax (10%): ${product.calculate_tax():.2f}\n")
+    print(product.get_fulfilment_info())
+    if isinstance(product, CanBeShipped):
+        print(f"Shipping Cost: ${product.calculate_shipping_cost():.2f}\n")
     
  
 def update_stock(inventory):

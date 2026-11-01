@@ -1,4 +1,6 @@
-class Product:
+from abc import ABC, abstractmethod
+
+class Product(ABC):
     """Represents and manages ONE product (SRP)."""
 
     TAX_RATE = 0.10
@@ -47,6 +49,11 @@ class Product:
     def calculate_tax(self):
         return self.__price * Product.TAX_RATE * self.__stock
 
+    @abstractmethod
+    def get_fulfilment_info(self):
+        """Return a string describing how this product is fulfilled."""
+        pass
+
     def display_information(self, show_tax=False):
         line = (f"ID: {self.__product_id} | Name: {self.__name} | "
                 f"Price: ${self.__price:.2f} | Stock: {self.__stock}")
@@ -58,7 +65,3 @@ class Product:
     def to_dict(self):
         return {"id": self.__product_id, "name": self.__name,
                 "price": self.__price, "stock": self.__stock}
-
-    @classmethod
-    def from_dict(cls, data):
-        return cls(data["id"], data["name"], data["price"], data["stock"])

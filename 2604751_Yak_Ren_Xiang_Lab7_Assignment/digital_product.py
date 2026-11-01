@@ -16,3 +16,17 @@ class DigitalProduct(Product):
     def display_information(self, show_tax=False):
         super().display_information(show_tax)
         print(f"    Download Size: {self.__download_size:.2f} MB")
+
+    def get_fulfilment_info(self):
+        return f"Delivered digitally via download ({self.__download_size:.2f} MB)."
+
+    TYPE = "digital"
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({"type": DigitalProduct.TYPE, "download_size": self.__download_size})
+        return data
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["id"], data["name"], data["price"], data["stock"], data["download_size"])

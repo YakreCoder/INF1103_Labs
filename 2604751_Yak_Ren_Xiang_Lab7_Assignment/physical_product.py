@@ -23,3 +23,17 @@ class PhysicalProduct(Product, CanBeShipped):
 
     def calculate_shipping_cost(self):
         return PhysicalProduct.BASE_SHIPPING_FEE + self.__weight * PhysicalProduct.COST_PER_KG
+
+    def get_fulfilment_info(self):
+        return f"Requires physical shipping ({self.__weight:.2f} kg)."
+
+    TYPE = "physical"
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({"type": PhysicalProduct.TYPE, "weight": self.__weight})
+        return data
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["id"], data["name"], data["price"], data["stock"], data["weight"])
