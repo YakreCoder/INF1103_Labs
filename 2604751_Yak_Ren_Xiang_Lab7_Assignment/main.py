@@ -5,6 +5,7 @@ from product import Product
 from inventory import Inventory
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
+from can_be_shipped import CanBeShipped
 from product_factory import create_product
 
 FILENAME = "inventory.json"
