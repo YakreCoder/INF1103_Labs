@@ -47,13 +47,30 @@
             "stock": 30,
             "type": "digital",
             "download_size": 1000.0
+        },
+        {
+            "id": "D002",
+            "name": "Steam.exe",
+            "price": 10.0,
+            "stock": 15,
+            "type": "digital",
+            "download_size": 100.0
+        },
+        {
+            "id": "P006",
+            "name": "Monitor Stand",
+            "price": 60.0,
+            "stock": 5,
+            "type": "physical",
+            "weight": 6.0
         }
     ],
-    "total_units": 146,
-    "failed_entries": 3,
+    "total_units": 166,
+    "failed_entries": 4,
     "errors": [
         "Product ID 'laptop' not found.",
         "No product found matching 'dkendjf'.",
-        "Invalid menu option '5kck'.\n"
+        "Invalid menu option '5kck'.\n",
+        "Invalid product type 'Digital'."
     ]
 }
