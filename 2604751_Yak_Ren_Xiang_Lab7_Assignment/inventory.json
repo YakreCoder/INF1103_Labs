@@ -4,37 +4,56 @@
             "id": "P001",
             "name": "Laptop",
             "price": 1200.0,
-            "stock": 15
+            "stock": 15,
+            "type": "physical",
+            "weight": 2.5
         },
         {
             "id": "P002",
             "name": "Mouse",
             "price": 25.5,
-            "stock": 50
+            "stock": 50,
+            "type": "physical",
+            "weight": 0.1
         },
         {
             "id": "P003",
             "name": "Keyboard",
             "price": 45.0,
-            "stock": 25
+            "stock": 25,
+            "type": "physical",
+            "weight": 0.8
         },
         {
             "id": "P004",
             "name": "Monitor",
             "price": 299.99,
-            "stock": 10
+            "stock": 10,
+            "type": "physical",
+            "weight": 2.0
         },
         {
             "id": "P005",
             "name": "Mousepad",
             "price": 10.0,
-            "stock": 15
+            "stock": 16,
+            "type": "physical",
+            "weight": 0.1
+        },
+        {
+            "id": "D001",
+            "name": "Adobe Software",
+            "price": 500.0,
+            "stock": 30,
+            "type": "digital",
+            "download_size": 1000.0
         }
     ],
-    "total_units": 115,
-    "failed_entries": 2,
+    "total_units": 146,
+    "failed_entries": 3,
     "errors": [
         "Product ID 'laptop' not found.",
-        "No product found matching 'dkendjf'."
+        "No product found matching 'dkendjf'.",
+        "Invalid menu option '5kck'.\n"
     ]
 }
