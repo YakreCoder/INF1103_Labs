@@ -1,5 +1,6 @@
 import os
 import json
+import mysql.connector
 
 from product import Product
 from inventory import Inventory
@@ -9,6 +10,7 @@ from can_be_shipped import CanBeShipped
 from product_factory import create_product
 
 FILENAME = "inventory.json"
+from product_repository import ProductRepository
 
 error_log = []
 failed_entries = 0
@@ -46,35 +48,25 @@ def read_number(prompt, cast):
         
 def load_inventory(inventory):
     global error_log, failed_entries
-    if not os.path.exists(FILENAME):
-        print(f"{FILENAME} not found. Creating a new one.")
-        save_inventory(inventory)
-        return
-
-    print(f"{FILENAME} found.")
     try:
-        with open(FILENAME, "r") as f:
-            data = json.load(f)
-        error_log = data.get("errors", [])
-        failed_entries = data.get("failed_entries", 0)
-        for item in data.get("products", []):
+        error_log = repository.load_errors()
+        failed_entries = len(error_log)
+        for item in repository.load_products():
             try:
                 inventory.add_product(create_product(item))
             except (KeyError, TypeError, ValueError) as e:
                 print(f"Skipped invalid product in file: {e}")      
         print("Inventory loaded successfully.")
-    except (json.JSONDecodeError, AttributeError):
-        print(f"{FILENAME} is unreadable. Starting with an empty inventory.")
+    except mysql.connector.Error as e:
+        print(f"Database error while loading: {e}. Starting with an empty inventory.")
 
 def save_inventory(inventory):
-    data = {
-        "products": inventory.to_list(),
-        "total_units": inventory.get_unit_count(),
-        "failed_entries": failed_entries,
-        "errors": error_log,
-    }
-    with open(FILENAME, "w") as f:
-        json.dump(data, f, indent=4)
+    try:
+        repository.save_products(inventory.to_list())
+        repository.save_errors(error_log)
+    except mysql.connector.Error as e:
+        print(f"Error: could not save inventory: {e}\n")
+        return
     print("Inventory saved successfully!\n")
  
 def add_product(inventory):
@@ -164,6 +156,12 @@ print("=" * 40)
 print("INVENTORY MANAGEMENT SYSTEM")
 print("=" * 40)
 inventory = Inventory()
+try:
+    repository = ProductRepository()
+except mysql.connector.Error as e:
+    print(f"Cannot connect to the database: {e}")
+    print("Is the XAMPP MySQL server running?")
+    raise SystemExit(1)
 load_inventory(inventory)
 show_menu()
 
@@ -192,6 +190,7 @@ if inventory.is_overstocked():
     print("Overstock Alert: Inventory limit reached.")
     
 save_inventory(inventory)
+repository.close()
 
 print("\nSaving inventory before exit...")
 print("Inventory saved successfully.")
