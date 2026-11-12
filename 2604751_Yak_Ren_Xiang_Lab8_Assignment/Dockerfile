@@ -11,6 +11,7 @@ COPY physical_product.py .
 COPY digital_product.py .
 COPY test_products.py .
 COPY product_factory.py .
+COPY supplier.py .
 
 
 CMD ["python", "main.py"]
