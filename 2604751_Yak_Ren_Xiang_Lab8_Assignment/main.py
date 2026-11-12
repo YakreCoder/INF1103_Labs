@@ -21,7 +21,8 @@ menu = [
     {"Choice" : "3", "Description": "Update Stock"},
     {"Choice" : "4", "Description": "Search Product"},
     {"Choice" : "5", "Description": "Save Inventory"},
-    {"Choice" : "6", "Description": "Exit"}
+    {"Choice" : "6", "Description": "Remove Product"},
+    {"Choice" : "7", "Description": "Exit"}
 ]
 
 def log_error(message):
@@ -185,7 +186,16 @@ def search_product(inventory):
         log_error(f"No product found matching '{term}'.")
         return
     inventory.display_products(matches, show_tax=True)
- 
+
+def remove_product(inventory):
+    print("Remove Product")
+    pid = read_text("Product ID: ")
+    try:
+        removed = inventory.remove_product(pid)
+    except ValueError as e:
+        log_error(str(e))
+        return
+    print(f"'{removed.name}' removed from inventory (the product itself still exists).\n")
  
 def show_menu():
     print("----------- MENU -----------")
@@ -206,12 +216,13 @@ actions = {
             "2": lambda: add_product(inventory), 
             "3": lambda: update_stock(inventory),
             "4": lambda: search_product(inventory), 
-            "5": lambda: save_inventory(inventory)
+            "5": lambda: save_inventory(inventory),
+            "6": lambda: remove_product(inventory),
             }
 
 while True:
     choice = read_text("\nEnter option: ")
-    if choice == "6":
+    if choice == "7":
         break
     if choice in actions:
         actions[choice]()
