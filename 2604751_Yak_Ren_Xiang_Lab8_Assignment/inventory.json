@@ -1,10 +1,17 @@
-{
+{   
+    "suppliers": [
+        {"supplier_id": "S001", "name": "TechSource Ltd", "contact_email": "sales@techsource.com"},
+        {"supplier_id": "S002", "name": "DigitalSoft Inc", "contact_email": "SALES@DIGITALSOFT.COM"},
+        {"supplier_id": "S003", "name": "TechDigital", "contact_email": "SALES@TECHDIGITAL.COM"}
+    ],
+
     "products": [
         {
             "id": "P001",
             "name": "Laptop",
             "price": 1200.0,
             "stock": 15,
+            "supplier": "S001",
             "type": "physical",
             "weight": 2.5
         },
@@ -13,6 +20,7 @@
             "name": "Mouse",
             "price": 25.5,
             "stock": 50,
+            "supplier": "S002",
             "type": "physical",
             "weight": 0.1
         },
@@ -21,6 +29,7 @@
             "name": "Keyboard",
             "price": 45.0,
             "stock": 25,
+            "supplier": "S003",
             "type": "physical",
             "weight": 0.8
         },
@@ -29,6 +38,7 @@
             "name": "Monitor",
             "price": 299.99,
             "stock": 10,
+            "supplier": "S001",
             "type": "physical",
             "weight": 2.0
         },
@@ -37,6 +47,7 @@
             "name": "Mousepad",
             "price": 10.0,
             "stock": 16,
+            "supplier": "S002",
             "type": "physical",
             "weight": 0.1
         },
@@ -45,6 +56,7 @@
             "name": "Adobe Software",
             "price": 500.0,
             "stock": 30,
+            "supplier": "S003",
             "type": "digital",
             "download_size": 1000.0
         },
@@ -53,6 +65,7 @@
             "name": "Steam.exe",
             "price": 10.0,
             "stock": 15,
+            "supplier": "S001",
             "type": "digital",
             "download_size": 100.0
         },
@@ -61,6 +74,7 @@
             "name": "Monitor Stand",
             "price": 60.0,
             "stock": 5,
+            "supplier": "S002",
             "type": "physical",
             "weight": 6.0
         }

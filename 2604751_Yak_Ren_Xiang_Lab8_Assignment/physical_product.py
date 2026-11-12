@@ -7,10 +7,10 @@ class PhysicalProduct(Product, CanBeShipped):
     BASE_SHIPPING_FEE = 5.00
     COST_PER_KG = 2.00
 
-    def __init__(self, product_id, name, price, stock, weight):
+    def __init__(self, product_id, name, price, stock,supplier, weight):
         if weight < 0:
             raise ValueError(f"Invalid weight '{weight}'.")
-        super().__init__(product_id, name, price, stock)
+        super().__init__(product_id, name, price, stock, supplier)
         self.__weight = float(weight)
 
     @property
@@ -35,5 +35,5 @@ class PhysicalProduct(Product, CanBeShipped):
         return data
     
     @classmethod
-    def from_dict(cls, data):
-        return cls(data["id"], data["name"], data["price"], data["stock"], data["weight"])
+    def from_dict(cls, data, supplier):
+        return cls(data["id"], data["name"], data["price"], data["stock"], supplier, data["weight"])

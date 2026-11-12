@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
+from supplier import Supplier
 
 class Product(ABC):
     """Represents and manages ONE product (SRP)."""
 
     TAX_RATE = 0.10
 
-    def __init__(self, product_id, name, price, stock):
+    def __init__(self, product_id, name, price, stock, supplier):
+        if supplier is None:
+            raise ValueError("A product must have a valid supplier.")
         if not str(product_id).strip():
             raise ValueError("Product ID cannot be empty.")
         if not Product.is_valid_name(name):
@@ -17,6 +20,7 @@ class Product(ABC):
         self.__name = name
         self.__price = float(price)
         self.__stock = 0
+        self.__supplier = supplier
         self.update_stock(stock)          # reuse validation
 
     # ---------- read-only access ----------
@@ -35,6 +39,10 @@ class Product(ABC):
     @property
     def stock(self):
         return self.__stock
+
+    @property
+    def supplier(self):
+        return self.__supplier
 
     # ---------- behaviour ----------
     @staticmethod
@@ -60,8 +68,10 @@ class Product(ABC):
         if show_tax:
             line += f" | Tax: ${self.calculate_tax():.2f}"
         print(line)
+        print(f"    Supplier: {self.__supplier.name}")
 
     # ---------- conversion for JSON (no file I/O here) ----------
     def to_dict(self):
         return {"id": self.__product_id, "name": self.__name,
-                "price": self.__price, "stock": self.__stock}
+                "price": self.__price, "stock": self.__stock,
+                "supplier_id": self.__supplier.supplier_id}

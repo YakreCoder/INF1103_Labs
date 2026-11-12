@@ -3,10 +3,10 @@ from product import Product
 class DigitalProduct(Product):
     """A product delivered through a download."""
 
-    def __init__(self, product_id, name, price, stock, download_size):
+    def __init__(self, product_id, name, price, stock, supplier, download_size):
         if download_size < 0:
             raise ValueError(f"Invalid download size '{download_size}'.")
-        super().__init__(product_id, name, price, stock)
+        super().__init__(product_id, name, price, stock, supplier)
         self.__download_size = float(download_size)
 
     @property
@@ -28,5 +28,5 @@ class DigitalProduct(Product):
         return data
     
     @classmethod
-    def from_dict(cls, data):
-        return cls(data["id"], data["name"], data["price"], data["stock"], data["download_size"])
+    def from_dict(cls, data, supplier):
+        return cls(data["id"], data["name"], data["price"], data["stock"], supplier, data["download_size"])

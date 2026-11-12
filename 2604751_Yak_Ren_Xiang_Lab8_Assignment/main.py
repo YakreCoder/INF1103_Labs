@@ -2,6 +2,7 @@ import os
 import json
 
 from product import Product
+from supplier import Supplier
 from inventory import Inventory
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
@@ -12,6 +13,7 @@ FILENAME = "inventory.json"
 
 error_log = []
 failed_entries = 0
+suppliers = {}
 
 menu = [
     {"Choice" : "1", "Description": "Display All Products"},
@@ -57,9 +59,16 @@ def load_inventory(inventory):
             data = json.load(f)
         error_log = data.get("errors", [])
         failed_entries = data.get("failed_entries", 0)
+        for item in data.get("suppliers", []):
+            try:
+                supplier = Supplier.from_dict(item)
+                suppliers[supplier.supplier_id.lower()] = supplier
+            except (KeyError, TypeError, ValueError) as e:
+                print(f"Skipped invalid supplier in file: {e}")
+
         for item in data.get("products", []):
             try:
-                inventory.add_product(create_product(item))
+                inventory.add_product(create_product(item, suppliers))
             except (KeyError, TypeError, ValueError) as e:
                 print(f"Skipped invalid product in file: {e}")      
         print("Inventory loaded successfully.")
@@ -68,6 +77,7 @@ def load_inventory(inventory):
 
 def save_inventory(inventory):
     data = {
+        "suppliers": [s.to_dict() for s in suppliers.values()],
         "products": inventory.to_list(),
         "total_units": inventory.get_unit_count(),
         "failed_entries": failed_entries,
@@ -76,7 +86,26 @@ def save_inventory(inventory):
     with open(FILENAME, "w") as f:
         json.dump(data, f, indent=4)
     print("Inventory saved successfully!\n")
- 
+
+def get_or_create_supplier():
+    """Reuse an existing Supplier, or create one independently of any Product."""
+    sid = read_text("Supplier ID: ")
+    if not sid:
+        log_error("Supplier ID cannot be empty.")
+        return None
+    supplier = suppliers.get(sid.lower())
+    if supplier:
+        return supplier
+    name = read_text("New Supplier Name: ")
+    email = read_text("Supplier Email: ")
+    try:
+        supplier = Supplier(sid, name, email)
+    except ValueError as e:
+        log_error(str(e))
+        return None
+    suppliers[supplier.supplier_id.lower()] = supplier
+    return supplier
+
 def add_product(inventory):
     print("Add New Product")
     pid = read_text("Product ID: ")
@@ -97,6 +126,10 @@ def add_product(inventory):
     stock = read_number("Stock Quantity: ", int)
     if stock is None:
         return
+
+    supplier = get_or_create_supplier()
+    if supplier is None:
+        return
     
     product_type = read_text("Product Type (1 = Physical, 2 = Digital): ")
     try:
@@ -104,12 +137,12 @@ def add_product(inventory):
             weight = read_number("Weight (kg): ", float)
             if weight is None:
                 return
-            product = PhysicalProduct(pid, name, price, stock, weight)
+            product = PhysicalProduct(pid, name, price, stock, supplier, weight)
         elif product_type == "2":
             size = read_number("Download Size (MB): ", float)
             if size is None:
                 return
-            product = DigitalProduct(pid, name, price, stock, size)
+            product = DigitalProduct(pid, name, price, stock, supplier, size)
         else:
             log_error(f"Invalid product type '{product_type}'.")
             return
@@ -119,6 +152,7 @@ def add_product(inventory):
         return
     
     print("Product added successfully!")
+    product.supplier.display_information()
     print(f"Tax (10%): ${product.calculate_tax():.2f}\n")
     print(product.get_fulfilment_info())
     if isinstance(product, CanBeShipped):
