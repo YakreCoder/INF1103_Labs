@@ -1,6 +1,6 @@
 import os
 import json
-
+from collections.abc import Callable
 from product import Product
 from supplier import Supplier
 from inventory import Inventory
@@ -11,9 +11,9 @@ from product_factory import create_product
 
 FILENAME = "inventory.json"
 
-error_log = []
-failed_entries = 0
-suppliers = {}
+error_log: list[str] = []
+failed_entries: int = 0
+suppliers: dict[str, Supplier] = {}
 
 menu = [
     {"Choice" : "1", "Description": "Display All Products"},
@@ -25,17 +25,17 @@ menu = [
     {"Choice" : "7", "Description": "Exit"}
 ]
 
-def log_error(message):
+def log_error(message: str) -> None:
     """Print an error, count it, and keep it for saving to the file."""
     global failed_entries
     failed_entries += 1
     error_log.append(message)
     print("Error:", message)
 
-def read_text(prompt):
+def read_text(prompt: str) -> str:
     return input(prompt).strip()
 
-def read_number(prompt, cast):
+def read_number(prompt: str, cast: Callable[[str], float]) -> float | None:
     """Return a non-negative number, or None (and log an error) if invalid."""
     raw = read_text(prompt)
     try:
@@ -47,7 +47,7 @@ def read_number(prompt, cast):
         log_error(f"Invalid input '{raw}' for {prompt.strip(': ')}.")
         return None
         
-def load_inventory(inventory):
+def load_inventory(inventory: Inventory) -> None:
     global error_log, failed_entries
     if not os.path.exists(FILENAME):
         print(f"{FILENAME} not found. Creating a new one.")
@@ -76,7 +76,7 @@ def load_inventory(inventory):
     except (json.JSONDecodeError, AttributeError):
         print(f"{FILENAME} is unreadable. Starting with an empty inventory.")
 
-def save_inventory(inventory):
+def save_inventory(inventory: Inventory) -> None:
     data = {
         "suppliers": [s.to_dict() for s in suppliers.values()],
         "products": inventory.to_list(),
@@ -88,7 +88,7 @@ def save_inventory(inventory):
         json.dump(data, f, indent=4)
     print("Inventory saved successfully!\n")
 
-def get_or_create_supplier():
+def get_or_create_supplier() -> Supplier | None:
     """Reuse an existing Supplier, or create one independently of any Product."""
     sid = read_text("Supplier ID: ")
     if not sid:
@@ -107,7 +107,7 @@ def get_or_create_supplier():
     suppliers[supplier.supplier_id.lower()] = supplier
     return supplier
 
-def add_product(inventory):
+def add_product(inventory: Inventory) -> None:
     print("Add New Product")
     pid = read_text("Product ID: ")
 
@@ -160,7 +160,7 @@ def add_product(inventory):
         print(f"Shipping Cost: ${product.calculate_shipping_cost():.2f}\n")
     
  
-def update_stock(inventory):
+def update_stock(inventory: Inventory) -> None:
     print("Update Stock")
     pid = read_text("Product ID: ")
     product = inventory.find_product(pid)
@@ -178,7 +178,7 @@ def update_stock(inventory):
     print("Stock updated successfully!\n")
 
  
-def search_product(inventory):
+def search_product(inventory: Inventory) -> None:
     print("Search Product")
     term = read_text("Enter Product ID or Name: ").lower()
     matches = inventory.search_product(term)
@@ -187,7 +187,7 @@ def search_product(inventory):
         return
     inventory.display_products(matches, show_tax=True)
 
-def remove_product(inventory):
+def remove_product(inventory: Inventory) -> None:
     print("Remove Product")
     pid = read_text("Product ID: ")
     try:
@@ -197,7 +197,7 @@ def remove_product(inventory):
         return
     print(f"'{removed.name}' removed from inventory (the product itself still exists).\n")
  
-def show_menu():
+def show_menu() -> None:
     print("----------- MENU -----------")
     for item in menu:
         print(f"{item['Choice']}. {item['Description']}")

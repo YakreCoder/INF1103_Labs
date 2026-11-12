@@ -6,7 +6,7 @@ class Product(ABC):
 
     TAX_RATE = 0.10
 
-    def __init__(self, product_id, name, price, stock, supplier):
+    def __init__(self, product_id: str, name: str, price: float, stock: int, supplier: Supplier) -> None:
         if supplier is None:
             raise ValueError("A product must have a valid supplier.")
         if not str(product_id).strip():
@@ -20,49 +20,49 @@ class Product(ABC):
         self.__name = name
         self.__price = float(price)
         self.__stock = 0
-        self.__supplier = supplier
+        self.__supplier: Supplier = supplier
         self.update_stock(stock)          # reuse validation
 
     # ---------- read-only access ----------
     @property
-    def product_id(self):
+    def product_id(self) -> str:
         return self.__product_id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
     @property
-    def price(self):
+    def price(self) -> float:
         return self.__price
 
     @property
-    def stock(self):
+    def stock(self) -> int:
         return self.__stock
 
     @property
-    def supplier(self):
+    def supplier(self) -> Supplier:
         return self.__supplier
 
     # ---------- behaviour ----------
     @staticmethod
-    def is_valid_name(name):
+    def is_valid_name(name: str) -> bool:
         return bool(name) and not name.isdigit()
 
-    def update_stock(self, quantity):
+    def update_stock(self, quantity: int) -> None:
         if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 0:
             raise ValueError(f"Invalid stock quantity '{quantity}'.")
         self.__stock = quantity
 
-    def calculate_tax(self):
+    def calculate_tax(self) -> float:
         return self.__price * Product.TAX_RATE * self.__stock
 
     @abstractmethod
-    def get_fulfilment_info(self):
+    def get_fulfilment_info(self) -> str:
         """Return a string describing how this product is fulfilled."""
         pass
 
-    def display_information(self, show_tax=False):
+    def display_information(self, show_tax: bool = False) -> None:
         line = (f"ID: {self.__product_id} | Name: {self.__name} | "
                 f"Price: ${self.__price:.2f} | Stock: {self.__stock}")
         if show_tax:
@@ -71,7 +71,7 @@ class Product(ABC):
         print(f"    Supplier: {self.__supplier.name}")
 
     # ---------- conversion for JSON (no file I/O here) ----------
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {"id": self.__product_id, "name": self.__name,
                 "price": self.__price, "stock": self.__stock,
                 "supplier_id": self.__supplier.supplier_id}
