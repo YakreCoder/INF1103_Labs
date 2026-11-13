@@ -14,6 +14,11 @@
             "supplier_id": "S003",
             "name": "TechDigital",
             "contact_email": "SALES@TECHDIGITAL.COM"
+        },
+        {
+            "supplier_id": "S004",
+            "name": "KrillionDev",
+            "contact_email": "Sales@Krillion.com"
         }
     ],
     "products": [
@@ -88,9 +93,18 @@
             "supplier_id": "S002",
             "type": "physical",
             "weight": 6.0
+        },
+        {
+            "id": "D003",
+            "name": "Krillion.exe",
+            "price": 0.1,
+            "stock": 100,
+            "supplier_id": "S004",
+            "type": "digital",
+            "download_size": 10.0
         }
     ],
-    "total_units": 0,
+    "total_units": 266,
     "failed_entries": 5,
     "errors": [
         "Product ID 'laptop' not found.",
