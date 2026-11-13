@@ -13,8 +13,8 @@ class Product(ABC):
             raise ValueError("Product ID cannot be empty.")
         if not Product.is_valid_name(name):
             raise ValueError(f"Invalid product name '{name}'.")
-        if price < 0:
-            raise ValueError(f"Invalid price '{price}'.")
+        if price <= 0:
+            raise ValueError(f"Invalid price '{price}': must be greater than zero.")
 
         self.__product_id = str(product_id).strip()
         self.__name = name

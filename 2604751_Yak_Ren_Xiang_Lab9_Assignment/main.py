@@ -4,10 +4,9 @@ from collections.abc import Callable
 from product import Product
 from supplier import Supplier
 from inventory import Inventory
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
 from can_be_shipped import CanBeShipped
 from product_factory import ProductFactory, create_product
+import math
 
 FILENAME = "inventory.json"
 
@@ -49,7 +48,20 @@ def read_number(prompt: str, cast: Callable[[str], float]) -> float | None:
     except ValueError:
         log_error(f"Invalid input '{raw}' for {prompt.strip(': ')}.")
         return None
-        
+
+def get_positive_float(prompt: str) -> float:
+    while True:
+        raw = read_text(prompt)
+        try:
+            value = float(raw)
+        except ValueError:
+            log_error(f"Invalid input '{raw}'. Please enter a valid number, e.g. 12.50")
+            continue
+        if value <= 0 or not math.isfinite(value):
+            log_error(f"Invalid input '{raw}'. Please enter a number greater than zero.")
+            continue
+        return value
+
 def load_inventory(inventory: Inventory) -> None:
     global error_log, failed_entries
     if not os.path.exists(FILENAME):
@@ -87,8 +99,13 @@ def save_inventory(inventory: Inventory) -> None:
         "failed_entries": failed_entries,
         "errors": error_log,
     }
-    with open(FILENAME, "w") as f:
-        json.dump(data, f, indent=4)
+
+    try:
+        with open(FILENAME, "w") as f:
+            json.dump(data, f, indent=4)
+    except OSError as e:
+        print(f"Error saving inventory: {e}")
+        return
     print("Inventory saved successfully!\n")
 
 def get_or_create_supplier() -> Supplier | None:
@@ -122,10 +139,8 @@ def add_product(inventory: Inventory) -> None:
     if not Product.is_valid_name(name):
         log_error(f"Invalid product name '{name}'.")
         return
-    
-    price = read_number("Price: ", float)
-    if price is None:
-        return
+
+    price = get_positive_float("Price: ")
     
     stock = read_number("Stock Quantity: ", int)
     if stock is None:
