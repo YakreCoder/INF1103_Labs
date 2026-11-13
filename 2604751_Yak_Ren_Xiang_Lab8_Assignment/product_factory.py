@@ -13,7 +13,7 @@ def create_product(data: dict, suppliers: dict[str, Supplier]) -> Product:
     product_class = PRODUCT_TYPES.get(data["type"])
     if product_class is None:
         raise ValueError(f"Unknown product type '{data['type']}'.")
-    supplier = suppliers.get(data["supplier_id"])
+    supplier = suppliers.get(data["supplier_id"].lower())
     if supplier is None:
         raise ValueError(f"Unknown supplier '{data['supplier_id']}'.")
     return product_class.from_dict(data, supplier)
