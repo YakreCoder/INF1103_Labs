@@ -7,7 +7,7 @@ from inventory import Inventory
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
 from can_be_shipped import CanBeShipped
-from product_factory import create_product
+from product_factory import ProductFactory, create_product
 
 FILENAME = "inventory.json"
 
@@ -24,6 +24,9 @@ menu = [
     {"Choice" : "6", "Description": "Remove Product"},
     {"Choice" : "7", "Description": "Exit"}
 ]
+
+PRODUCT_TYPE_CHOICES = {"1": "physical", "2": "digital"}
+SPECIFIC_PROMPTS = {"physical": "Weight (kg): ", "digital": "Download Size (MB): "}
 
 def log_error(message: str) -> None:
     """Print an error, count it, and keep it for saving to the file."""
@@ -131,22 +134,18 @@ def add_product(inventory: Inventory) -> None:
     supplier = get_or_create_supplier()
     if supplier is None:
         return
-    
-    product_type = read_text("Product Type (1 = Physical, 2 = Digital): ")
+
+    choice = read_text("Product Type (1 = Physical, 2 = Digital): ")
+    product_type = PRODUCT_TYPE_CHOICES.get(choice)
+    if product_type is None:
+        log_error(f"Invalid product type '{choice}'.")
+        return
+    specific_value = read_number(SPECIFIC_PROMPTS[product_type], float)
+    if specific_value is None:
+        return
     try:
-        if product_type == "1":
-            weight = read_number("Weight (kg): ", float)
-            if weight is None:
-                return
-            product = PhysicalProduct(pid, name, price, stock, supplier, weight)
-        elif product_type == "2":
-            size = read_number("Download Size (MB): ", float)
-            if size is None:
-                return
-            product = DigitalProduct(pid, name, price, stock, supplier, size)
-        else:
-            log_error(f"Invalid product type '{product_type}'.")
-            return
+        product = ProductFactory.create(product_type, pid, name, price, stock, 
+                                        supplier, specific_value)
         inventory.add_product(product)
     except ValueError as e:
         log_error(str(e))
