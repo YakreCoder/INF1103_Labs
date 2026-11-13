@@ -1,4 +1,5 @@
 from product import Product
+from discount_strategy import DiscountStrategy, NoDiscount
 
 
 class OrderLine:
@@ -33,11 +34,14 @@ class OrderLine:
 class Order:
     """Whole in a composition: creates and manages its own OrderLine objects."""
 
-    def __init__(self, order_id: str) -> None:
+    def __init__(self, order_id: str, discount: DiscountStrategy | None = None) -> None:
         if not str(order_id).strip():
             raise ValueError("Order ID cannot be empty.")
         self.__order_id: str = str(order_id).strip()
         self.__order_lines: list[OrderLine] = []
+        self.__discount: DiscountStrategy = NoDiscount()
+        if discount is not None:
+            self.set_discount(discount)
 
     @property
     def order_id(self) -> str:
@@ -58,8 +62,14 @@ class Order:
                 return
         raise ValueError(f"No order line for product '{product_id}'.")
 
+    def set_discount(self, discount: DiscountStrategy) -> None:
+        if not isinstance(discount, DiscountStrategy):
+            raise TypeError("discount must be an instance of DiscountStrategy.")
+        self.__discount = discount
+
     def calculate_total(self) -> float:
-        return sum(line.calculate_subtotal() for line in self.__order_lines)
+        total = sum(line.calculate_subtotal() for line in self.__order_lines)
+        return self.__discount.apply(total)
 
     def display_information(self) -> None:
         print(f"Order {self.__order_id}")
