@@ -19,18 +19,14 @@
             "supplier_id": "S004",
             "name": "KrillionDev",
             "contact_email": "Sales@Krillion.com"
+        },
+        {
+            "supplier_id": "S005",
+            "name": "Klei Entertainment",
+            "contact_email": "Sales@Klei.com"
         }
     ],
     "products": [
-        {
-            "id": "P001",
-            "name": "Laptop",
-            "price": 1200.0,
-            "stock": 15,
-            "supplier_id": "S001",
-            "type": "physical",
-            "weight": 2.5
-        },
         {
             "id": "P002",
             "name": "Mouse",
@@ -102,9 +98,18 @@
             "supplier_id": "S004",
             "type": "digital",
             "download_size": 10.0
+        },
+        {
+            "id": "D004",
+            "name": "DST.exe",
+            "price": 5.0,
+            "stock": 2,
+            "supplier_id": "S005",
+            "type": "digital",
+            "download_size": 200.0
         }
     ],
-    "total_units": 266,
+    "total_units": 253,
     "failed_entries": 5,
     "errors": [
         "Product ID 'laptop' not found.",

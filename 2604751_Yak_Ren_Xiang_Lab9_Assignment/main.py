@@ -6,6 +6,9 @@ from supplier import Supplier
 from inventory import Inventory
 from can_be_shipped import CanBeShipped
 from product_factory import ProductFactory, create_product
+from order import Order
+from discount_strategy import (DiscountStrategy, NoDiscount, PercentageDiscount,
+                               BulkDiscount, StudentDiscount)
 import math
 
 FILENAME = "inventory.json"
@@ -13,6 +16,7 @@ FILENAME = "inventory.json"
 error_log: list[str] = []
 failed_entries: int = 0
 suppliers: dict[str, Supplier] = {}
+orders: dict[str, Order] = {}
 
 menu = [
     {"Choice" : "1", "Description": "Display All Products"},
@@ -21,7 +25,9 @@ menu = [
     {"Choice" : "4", "Description": "Search Product"},
     {"Choice" : "5", "Description": "Save Inventory"},
     {"Choice" : "6", "Description": "Remove Product"},
-    {"Choice" : "7", "Description": "Exit"}
+    {"Choice" : "7", "Description": "Create Order"},
+    {"Choice" : "8", "Description": "Set Order Discount"},
+    {"Choice" : "9", "Description": "Exit"}
 ]
 
 PRODUCT_TYPE_CHOICES = {"1": "physical", "2": "digital"}
@@ -210,7 +216,81 @@ def remove_product(inventory: Inventory) -> None:
         log_error(str(e))
         return
     print(f"'{removed.name}' removed from inventory (the product itself still exists).\n")
- 
+
+def create_order(inventory: Inventory) -> None:
+    print("Create Order")
+    oid = read_text("Order ID: ")
+    if oid.lower() in orders:
+        log_error(f"Order ID '{oid}' already exists.")
+        return
+    try:
+        order = Order(oid)
+    except ValueError as e:
+        log_error(str(e))
+        return
+    while True:
+        pid = read_text("Product ID to add (blank to finish): ")
+        if not pid:
+            break
+        product = inventory.find_product(pid)
+        if product is None:
+            log_error(f"Product ID '{pid}' not found.")
+            continue
+        qty = read_number("Quantity: ", int)
+        if qty is None:
+            continue
+        try:
+            order.add_order_line(product, qty)
+        except ValueError as e:
+            log_error(str(e))
+    orders[order.order_id.lower()] = order
+    order.display_information()
+
+def ask_percentage() -> DiscountStrategy | None:
+    pct = read_number("Percentage (0-100): ", float)
+    return None if pct is None else PercentageDiscount(pct)
+
+def ask_bulk() -> DiscountStrategy | None:
+    threshold = read_number("Threshold: ", float)
+    if threshold is None:
+        return None
+    amount = read_number("Amount off: ", float)
+    if amount is None:
+        return None
+    return BulkDiscount(threshold, amount)
+
+# Each option builds a strategy. Adding a new discount = one new line here.
+DISCOUNT_OPTIONS = {
+    "1": ("No Discount", NoDiscount),
+    "2": ("Percentage", ask_percentage),
+    "3": ("Bulk", ask_bulk),
+    "4": ("Student (5%)", StudentDiscount),
+}
+
+def set_order_discount() -> None:
+    print("Set Order Discount")
+    oid = read_text("Order ID: ")
+    order = orders.get(oid.lower())
+    if order is None:
+        log_error(f"Order ID '{oid}' not found.")
+        return
+    for key, (label, _) in DISCOUNT_OPTIONS.items():
+        print(f"{key}. {label}")
+    choice = read_text("Discount type: ")
+    option = DISCOUNT_OPTIONS.get(choice)
+    if option is None:
+        log_error(f"Invalid discount type '{choice}'.")
+        return
+    try:
+        discount = option[1]()
+        if discount is None:
+            return
+        order.set_discount(discount)
+    except ValueError as e:
+        log_error(str(e))
+        return
+    order.display_information()
+
 def show_menu() -> None:
     print("----------- MENU -----------")
     for item in menu:
@@ -232,11 +312,13 @@ actions = {
             "4": lambda: search_product(inventory), 
             "5": lambda: save_inventory(inventory),
             "6": lambda: remove_product(inventory),
+            "7": lambda: create_order(inventory),
+            "8": lambda: set_order_discount(),
             }
 
 while True:
     choice = read_text("\nEnter option: ")
-    if choice == "7":
+    if choice == "9":
         break
     if choice in actions:
         actions[choice]()

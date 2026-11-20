@@ -45,7 +45,7 @@ class TestDiscounts(unittest.TestCase):
             DiscountStrategy()
 
     def test_rejects_non_strategy(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.order.set_discount("10%")
 
 
