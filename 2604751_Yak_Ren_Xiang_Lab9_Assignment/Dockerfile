@@ -13,6 +13,8 @@ COPY test_products.py .
 COPY product_factory.py .
 COPY supplier.py .
 COPY order.py .
+COPY discount_strategy.py .
+COPY product_loader.py .
 
 
 CMD ["python", "main.py"]
